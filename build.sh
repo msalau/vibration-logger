@@ -20,7 +20,7 @@ echo "Installing libraries"
 arduino-cli lib install SD@1.2.4
 arduino-cli lib install U8g2@2.33.15
 arduino-cli lib install ezButton@1.0.4
-arduino-cli lib install --git-url https://github.com/Bill2462/PCF8563-Arduino-Library.git#V0.2
+arduino-cli lib install RTClib@2.1.0
 
 echo "Compiling the sketch"
 arduino-cli compile --export-binaries --fqbn Seeeduino:nrf52:xiaonRF52840Sense:softdevice=s140v6,debug=l0 ./Logger/

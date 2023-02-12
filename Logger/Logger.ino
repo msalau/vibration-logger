@@ -1,7 +1,7 @@
 #include <SD.h>
 #include <ezButton.h>
 #include <U8x8lib.h>
-#include <PCF8563.h>
+#include <RTClib.h>
 #include <Wire.h>
 #include "MyLSM6DS3.hpp"
 
@@ -29,7 +29,7 @@ uint32_t imu_log_data_points;
 
 ezButton btn(BUTTON_PIN, INPUT_PULLUP);
 MyLSM6DS3 imu;
-PCF8563 rtc;
+RTC_PCF8563 rtc;
 U8X8_SSD1306_128X64_NONAME_HW_I2C lcd(/* clock=*/PIN_WIRE_SCL, /* data=*/PIN_WIRE_SDA, /* reset=*/U8X8_PIN_NONE);
 File file;
 
@@ -54,7 +54,7 @@ void setup() {
   digitalWrite(LED_GREEN, 1);
   digitalWrite(LED_BLUE, 1);
 
-  rtc.init();
+  rtc.begin();
   lcd.begin();
   lcd.setFlipMode(0);
   lcd.setFont(u8x8_font_chroma48medium8_r);
@@ -146,15 +146,15 @@ void loop() {
   }
 }
 
-Time getTime(void) {
+DateTime getTime(void) {
   // rtc.getTime() is not atomic, so read it several times until identical values are read
-  Time now1 = rtc.getTime();
-  Time now2 = rtc.getTime();
+  DateTime now1 = rtc.now();
+  DateTime now2 = rtc.now();
   unsigned timeout = 10;
 
-  while (memcmp(&now1, &now2, sizeof(now1)) && timeout) {
+  while (now1 != now2 && timeout) {
     now1 = now2;
-    now2 = rtc.getTime();
+    now2 = rtc.now();
     timeout--;
   }
 
@@ -162,23 +162,23 @@ Time getTime(void) {
 }
 
 void getFatDateTime(uint16_t* date, uint16_t* time) {
-  Time now = getTime();
-  *date = FAT_DATE(now.year + 2000, now.month, now.day);
-  *time = FAT_TIME(now.hour, now.minute, now.second);
+  DateTime now = getTime();
+  *date = FAT_DATE(now.year(), now.month(), now.day());
+  *time = FAT_TIME(now.hour(), now.minute(), now.second());
 }
 
 void showTime(void) {
-  static Time prevTime;
-  Time now = getTime();
+  static DateTime prevTime;
+  DateTime now = getTime();
 
-  if (memcmp(&prevTime, &now, sizeof(Time))) {
+  if (prevTime != now) {
     char str[16];
 
-    snprintf(str, sizeof(str), "%02u.%02u.20%02u", now.day, now.month, now.year);
+    snprintf(str, sizeof(str), "%02u.%02u.%04u", now.day(), now.month(), now.year());
     lcd.setCursor(3, 3);
     lcd.print(str);
 
-    snprintf(str, sizeof(str), "%02u:%02u:%02u", now.hour, now.minute, now.second);
+    snprintf(str, sizeof(str), "%02u:%02u:%02u", now.hour(), now.minute(), now.second());
     lcd.setCursor(4, 4);
     lcd.print(str);
   }
@@ -204,12 +204,12 @@ bool sdLogStart(void) {
   }
   Log("%u: sd: Initialization complete\r\n", millis());
 
-  const Time now = getTime();
+  const DateTime now = getTime();
   char dirname[16];
 
   snprintf(dirname, sizeof(dirname),
-           "20%02u%02u%02u",
-           now.year, now.month, now.day);
+           "%04u%02u%02u",
+           now.year(), now.month(), now.day());
 
   if (SD.exists(dirname)) {
     Log("%u: sd: Directory %s exists\r\n", millis(), dirname);
@@ -224,7 +224,7 @@ bool sdLogStart(void) {
   snprintf(filename, sizeof(filename),
            "%s/%02u%02u%02u.csv",
            dirname,
-           now.hour, now.minute, now.second);
+           now.hour(), now.minute(), now.second());
 
   Log("%u: sd: Opening %s\r\n", millis(), filename);
   file = SD.open(filename, (O_RDWR | O_CREAT | O_TRUNC));
