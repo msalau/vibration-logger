@@ -24,6 +24,4 @@ jobs:
       - name: Save binaries
         uses: actions/upload-artifact@v3.1.2
         with:
-          path: |
-            */build/*/*.zip
-            */build/*/*.uf2
+          path: ./**/*
