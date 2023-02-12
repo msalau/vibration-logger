@@ -92,6 +92,7 @@ void loop() {
         break;
       }
       showTime();
+      timeSetterLoop();
       break;
     case STATE_STARTING:
       Log("%u: loop: starting\r\n", millis());
@@ -351,4 +352,41 @@ void sdLogStop(void) {
       imu_log_data_points,
       (imu_log_stop_time - imu_log_start_time),
       (imu_log_data_points * 1000) / (imu_log_stop_time - imu_log_start_time));
+}
+
+void timeSetterLoop(void) {
+  if (!Serial)
+    return;
+
+  if (!Serial.available())
+    return;
+
+  String buf = Serial.readStringUntil('\n');
+
+  if (!buf.startsWith("time "))
+    return;
+
+  Log("%u: time: Command: '%s'\r\n", millis(), buf.c_str());
+
+  unsigned day, month, year, hour, minute, second;
+  int ret = sscanf(buf.c_str() + 5,
+                   "%u.%u.%u %u:%u:%u",
+                   &day, &month, &year,
+                   &hour, &minute, &second);
+
+  DateTime newTime(year, month, day, hour, minute, second);
+
+  if (ret != 6) {
+    Log("%u: time: Invalid format. Expected command: `time DD.MM.YYYY hh:mm::ss\\r\\n`\r\n", millis(), ret);
+  } else if (!newTime.isValid()) {
+    Log("%u: time: Invalid time\r\n", millis());
+  } else {
+    Log("%u: time: Setting new time\r\n", millis());
+
+    rtc.stop();
+    rtc.adjust(newTime);
+    rtc.start();
+
+    Log("%u: time: Time has been updated\r\n", millis());
+  }
 }
