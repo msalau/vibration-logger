@@ -3,8 +3,6 @@
 set -e
 set -x
 
-export ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL=true
-
 echo "Removing old build artifacts"
 rm -rf ./Logger/build/
 
