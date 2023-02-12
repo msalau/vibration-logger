@@ -29,4 +29,5 @@ jobs:
             ./**/*
             !./.git
             !./utils
+            !./arduino-cli
           if-no-files-found: error
