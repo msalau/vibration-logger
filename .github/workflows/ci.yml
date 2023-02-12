@@ -1,0 +1,29 @@
+name: Compile
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.3.0
+        with:
+          submodules: true
+
+      - name: Install adafruit-nrfutil
+        run: pip3 install adafruit-nrfutil
+
+      - name: Install Arduino CLI
+        run: curl -fsSL https://github.com/arduino/arduino-cli/releases/download/0.30.0/arduino-cli_0.30.0_Linux_64bit.tar.gz | gunzip | tar x arduino-cli
+
+      - name: Compile examples
+        run: PATH=.:$PATH ./build.sh
+
+      - name: Save binaries
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          path: |
+            */build/*/*.zip
+            */build/*/*.uf2

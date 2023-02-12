@@ -1,0 +1,3 @@
+[submodule "utils/uf2"]
+	path = utils/uf2
+	url = git@github.com:microsoft/uf2.git
