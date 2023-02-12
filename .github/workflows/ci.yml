@@ -25,5 +25,8 @@ jobs:
         uses: actions/upload-artifact@v3.1.2
         with:
           name: ${{ github.event.repository.name }}-${{ github.sha }}
-          path: ./**/*
+          path: |
+            ./**/*
+            !./.git
+            !./utils
           if-no-files-found: error
