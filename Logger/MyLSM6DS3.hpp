@@ -33,28 +33,37 @@ public:
   status_t readRegisters(uint8_t address, void *data, size_t length = 1) {
     uint8_t *p_data = (uint8_t *)data;
     i2cInterface.beginTransmission(i2cAddress);
-    i2cInterface.write(address);
+    if (i2cInterface.write(address) != 1) {
+      i2cInterface.endTransmission();
+      return IMU_HW_ERROR;
+    }
     if (i2cInterface.endTransmission(false) != 0) {
       return IMU_HW_ERROR;
-    } else {  //OK, all worked, keep going
-      // request 6 bytes from slave device
-      i2cInterface.requestFrom(i2cAddress, length);
-      while ((i2cInterface.available()) && length) {  // slave may send less than requested
+    }
+    if (i2cInterface.requestFrom(i2cAddress, length) != length) {
+      return IMU_HW_ERROR;
+    }
+    while (length && i2cInterface.available()) {
         *p_data++ = i2cInterface.read();
         length--;
       }
-    }
-
-    if (length)
+    if (length) {
       return IMU_INCOMPLETE_OPERATION;
+    }
 
     return IMU_SUCCESS;
   }
 
   status_t writeRegisters(uint8_t address, const void *data, size_t length = 1) {
     i2cInterface.beginTransmission(i2cAddress);
-    i2cInterface.write(address);
-    i2cInterface.write((const uint8_t *)data, length);
+    if (i2cInterface.write(address) != 1) {
+      i2cInterface.endTransmission();
+      return IMU_HW_ERROR;
+    }
+    if (i2cInterface.write((const uint8_t *)data, length) != length) {
+      i2cInterface.endTransmission();
+      return IMU_HW_ERROR;
+    }
     if (i2cInterface.endTransmission() != 0) {
       return IMU_HW_ERROR;
     }
