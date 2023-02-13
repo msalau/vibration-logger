@@ -44,9 +44,9 @@ public:
       return IMU_HW_ERROR;
     }
     while (length && i2cInterface.available()) {
-        *p_data++ = i2cInterface.read();
-        length--;
-      }
+      *p_data++ = i2cInterface.read();
+      length--;
+    }
     if (length) {
       return IMU_INCOMPLETE_OPERATION;
     }
@@ -89,7 +89,7 @@ public:
 
     uint8_t ctrl[2] = {
       // CTRL1_XL
-      LSM6DS3_ACC_GYRO_BW_XL_400Hz | LSM6DS3_ACC_GYRO_FS_XL_8g | LSM6DS3_ACC_GYRO_ODR_XL_833Hz,
+      LSM6DS3_ACC_GYRO_BW_XL_400Hz | LSM6DS3_ACC_GYRO_FS_XL_8g | LSM6DS3_ACC_GYRO_ODR_XL_1660Hz,
       // CTRL2_G
       LSM6DS3_ACC_GYRO_ODR_G_POWER_DOWN,
     };
@@ -120,7 +120,7 @@ public:
       // FIFO_CTRL4
       0,
       // FIFO_CTRL5
-      LSM6DS3_ACC_GYRO_FIFO_MODE_DYN_STREAM_2 | LSM6DS3_ACC_GYRO_ODR_FIFO_800Hz
+      LSM6DS3_ACC_GYRO_FIFO_MODE_DYN_STREAM_2 | LSM6DS3_ACC_GYRO_ODR_FIFO_1600Hz
     };
 
     return writeRegisters(LSM6DS3_ACC_GYRO_FIFO_CTRL1, fifo_ctrl, sizeof(fifo_ctrl));
