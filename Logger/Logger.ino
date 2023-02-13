@@ -302,10 +302,8 @@ bool sdLogProcess(void) {
   uint16_t fifoLeft = fifoLength;
 
   while (fifoLeft) {
-    unsigned len = min(fifoLeft, 5);
-
-    ImuRawValue values[5];
-    status_t status = imu.fifoReadValues(values, len);
+    ImuRawValue value;
+    status_t status = imu.fifoReadValue(&value);
     if (status != IMU_SUCCESS) {
       Log("%u: imu: Failed to read FIFO with code %d\r\n", millis(), status);
       sdLogError("FIFO read error");
@@ -313,17 +311,14 @@ bool sdLogProcess(void) {
     }
 
     char str[128];
-    unsigned str_len = 0;
-
-    for (unsigned i = 0; i < len; i++) {
-      str_len += snprintf(str + str_len,
-                          sizeof(str) - str_len,
-                          "%" PRIi16 ",%" PRIi16 ",%" PRIi16 "\r\n",
-                          values[i].x, values[i].y, values[i].z);
-    }
+    size_t str_len = snprintf(
+      str,
+      sizeof(str),
+      "%" PRIi16 ",%" PRIi16 ",%" PRIi16 "\r\n",
+      value.x, value.y, value.z);
 
     file.write(str, str_len);
-    fifoLeft -= len;
+    fifoLeft--;
   }
 
   imu_log_data_points += fifoLength;

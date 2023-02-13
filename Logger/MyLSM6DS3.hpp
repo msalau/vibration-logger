@@ -97,11 +97,8 @@ public:
     return writeRegisters(LSM6DS3_ACC_GYRO_CTRL1_XL, ctrl, sizeof(ctrl));
   }
 
-  status_t fifoReadValues(ImuRawValue *value, uint8_t length) {
-    if (length > 5)
-      return IMU_INVALID_ARGUMENT;
-
-    return readRegisters(LSM6DS3_ACC_GYRO_FIFO_DATA_OUT_L, value, sizeof(value[0]) * length);
+  status_t fifoReadValue(ImuRawValue *data) {
+    return readRegisters(LSM6DS3_ACC_GYRO_FIFO_DATA_OUT_L, data, sizeof(data[0]));
   }
 
   status_t fifoGetStatus(uint16_t *data) {
@@ -139,7 +136,7 @@ public:
     fifoGetStatus(&fifoStatus);
 
     while ((fifoStatus & 0x1000) == 0) {
-      fifoReadValues(&value, 1);
+      fifoReadValue(&value);
       fifoStatus = 0;
       fifoGetStatus(&fifoStatus);
     }
