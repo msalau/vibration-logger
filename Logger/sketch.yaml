@@ -1,0 +1,17 @@
+#
+# Compile using the following command
+#   arduino-cli compile --export-binaries
+#
+default_fqbn: Seeeduino:nrf52:xiaonRF52840Sense:softdevice=s140v6,debug=l0
+profiles:
+  xiao:
+    fqbn: Seeeduino:nrf52:xiaonRF52840Sense:softdevice=s140v6,debug=l0
+    platforms:
+      - platform: Seeeduino:nrf52 (1.1.1)
+        platform_index_url: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
+    libraries:
+      - SD (1.2.4)
+      - U8g2 (2.33.15)
+      - ezButton (1.0.4)
+      - Adafruit BusIO (1.14.1)
+      - RTClib (2.1.0)

@@ -3,7 +3,7 @@ name: Compile
 on: [push, pull_request]
 
 jobs:
-  build:
+  build-with-script:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,3 +31,37 @@ jobs:
             !./utils
             !./arduino-cli
           if-no-files-found: error
+
+  build-with-action:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.3.0
+        with:
+          submodules: true
+
+      - name: Install adafruit-nrfutil
+        run: pip3 install adafruit-nrfutil
+
+      - uses: arduino/compile-sketches@v1
+        with:
+          cli-version: 0.30.0
+          sketch-paths: .
+          verbose: true
+          fqbn: Seeeduino:nrf52:xiaonRF52840Sense:softdevice=s140v6,debug=l0
+          platforms: |
+            - name: Seeeduino:nrf52
+              version: 1.1.1
+              source-url: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
+          libraries: |
+            - name: SD
+              version: 1.2.4
+            - name: U8g2
+              version: 2.33.15
+            - name: ezButton
+              version: 1.0.4
+            - name: Adafruit BusIO
+              version: 1.14.1
+            - name: RTClib
+              version: 2.1.0
