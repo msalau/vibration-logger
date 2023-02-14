@@ -116,7 +116,7 @@ public:
       // FIFO_CTRL2
       0,
       // FIFO_CTRL3
-      LSM6DS3_ACC_GYRO_DEC_FIFO_XL_DECIMATION_BY_4,
+      LSM6DS3_ACC_GYRO_DEC_FIFO_XL_DECIMATION_BY_3,
       // FIFO_CTRL4
       0,
       // FIFO_CTRL5
