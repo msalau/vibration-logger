@@ -14,4 +14,4 @@ profiles:
       - U8g2 (2.33.15)
       - ezButton (1.0.4)
       - Adafruit BusIO (1.14.1)
-      - RTClib (2.1.0)
+      - RTClib (2.1.1)
