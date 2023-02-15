@@ -21,13 +21,15 @@ typedef struct {
 
 class MyLSM6DS3 {
 private:
-  uint8_t i2cAddress;
   TwoWire &i2cInterface;
+  uint8_t i2cAddress;
+  uint8_t irqPin;
 
 public:
-  MyLSM6DS3(TwoWire &i2cInterface = Wire1, uint8_t i2cAddress = 0x6A)
+  MyLSM6DS3(TwoWire &i2cInterface = Wire1, uint8_t i2cAddress = 0x6A, uint8_t irqPin = PIN_LSM6DS3TR_C_INT1)
     : i2cInterface(i2cInterface),
-      i2cAddress(i2cAddress) {
+      i2cAddress(i2cAddress),
+      irqPin(irqPin) {
   }
 
   status_t readRegisters(uint8_t address, void *data, size_t length = 1) {
@@ -87,6 +89,8 @@ public:
     if (reg_value != LSM6DS3_ACC_GYRO_WHO_AM_I && reg_value != LSM6DS3_C_ACC_GYRO_WHO_AM_I)
       return IMU_NOT_SUPPORTED;
 
+    pinMode(irqPin, INPUT);
+
     uint8_t ctrl[2] = {
       // CTRL1_XL
       LSM6DS3_ACC_GYRO_BW_XL_400Hz | LSM6DS3_ACC_GYRO_FS_XL_8g | LSM6DS3_ACC_GYRO_ODR_XL_6660Hz,
@@ -94,7 +98,24 @@ public:
       LSM6DS3_ACC_GYRO_ODR_G_POWER_DOWN,
     };
 
-    return writeRegisters(LSM6DS3_ACC_GYRO_CTRL1_XL, ctrl, sizeof(ctrl));
+    status = writeRegisters(LSM6DS3_ACC_GYRO_CTRL1_XL, ctrl, sizeof(ctrl));
+
+    if (status != IMU_SUCCESS) {
+      return status;
+    }
+    
+    uint8_t int_ctrl[2] = {
+      // INT1_CTRL
+      LSM6DS3_ACC_GYRO_INT1_OVR_ENABLED,
+      // INT2_CTRL
+      0,
+    };
+
+    return writeRegisters(LSM6DS3_ACC_GYRO_INT1_CTRL, int_ctrl, sizeof(int_ctrl));
+  }
+
+  bool isIrqSet(void) {
+    return digitalRead(irqPin);
   }
 
   status_t fifoReadValue(ImuRawValue *data) {

@@ -302,6 +302,12 @@ bool sdLogProcess(void) {
   uint16_t fifoLeft = fifoLength;
 
   while (fifoLeft) {
+    if (imu.isIrqSet()) {
+      Log("%u: imu: FIFO Overflow Interrupt\r\n", millis());
+      sdLogError("FIFO Overflow Interrupt");
+      return false;
+    }
+
     ImuRawValue value;
     status_t status = imu.fifoReadValue(&value);
     if (status != IMU_SUCCESS) {
