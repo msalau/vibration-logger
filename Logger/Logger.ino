@@ -21,7 +21,7 @@ uint32_t imu_log_start_time;
 uint32_t imu_log_stop_time;
 uint32_t imu_log_data_points;
 
-#define SD_SPI_FREQ 8000000
+#define SD_SPI_FREQ 32000000
 #define SD_CS_PIN D2
 #define BUTTON_PIN D1
 #define BUZZER_PIN D3
