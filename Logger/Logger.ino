@@ -26,6 +26,7 @@ uint32_t imu_log_data_points;
 #define BUTTON_PIN D1
 #define BUZZER_PIN D3
 #define BUZZER_FREQ 1000
+#define FILE_WRITE_PIN D0
 
 ezButton btn(BUTTON_PIN, INPUT_PULLUP);
 MyLSM6DS3 imu;
@@ -55,6 +56,9 @@ void setup() {
   digitalWrite(LED_RED, 1);
   digitalWrite(LED_GREEN, 1);
   digitalWrite(LED_BLUE, 1);
+
+  pinMode(FILE_WRITE_PIN, OUTPUT);
+  digitalWrite(FILE_WRITE_PIN, 0);
 
   rtc.begin();
   lcd.begin();
@@ -325,7 +329,9 @@ bool sdLogProcess(void) {
       "%" PRIi16 ",%" PRIi16 ",%" PRIi16 "\r\n",
       value.x, value.y, value.z);
 
+    digitalWrite(FILE_WRITE_PIN, 1);
     file.write(str, str_len);
+    digitalWrite(FILE_WRITE_PIN, 0);
     fifoLeft--;
   }
 
