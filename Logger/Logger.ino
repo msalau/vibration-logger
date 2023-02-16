@@ -336,7 +336,9 @@ bool sdLogProcess(void) {
   }
 
   imu_log_data_points += fifoLength;
-  //Log("%u: log: Received %u (+%u) data points\r\n", millis(), imu_log_data_points, fifoLength);
+  if (fifoLength >= 100) {
+    Log("%u: log: Received %u (+%u) data points\r\n", millis(), imu_log_data_points, fifoLength);
+  }
 
   return true;
 }
