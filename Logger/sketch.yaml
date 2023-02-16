@@ -10,7 +10,7 @@ profiles:
       - platform: Seeeduino:nrf52 (1.1.1)
         platform_index_url: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
     libraries:
-      - SD (1.2.4)
+      - SdFat (2.2.0)
       - U8g2 (2.33.15)
       - ezButton (1.0.4)
       - Adafruit BusIO (1.14.1)

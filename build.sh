@@ -15,7 +15,7 @@ echo "Installing the core"
 arduino-cli core install Seeeduino:nrf52@1.1.1
 
 echo "Installing libraries"
-arduino-cli lib install SD@1.2.4
+arduino-cli lib install SdFat@2.2.0
 arduino-cli lib install U8g2@2.33.15
 arduino-cli lib install ezButton@1.0.4
 arduino-cli lib install RTClib@2.1.1

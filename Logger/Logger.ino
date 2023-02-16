@@ -1,4 +1,4 @@
-#include <SD.h>
+#include <SdFat.h>
 #include <ezButton.h>
 #include <U8x8lib.h>
 #include <RTClib.h>
@@ -21,7 +21,7 @@ uint32_t imu_log_start_time;
 uint32_t imu_log_stop_time;
 uint32_t imu_log_data_points;
 
-#define SD_SPI_FREQ 32000000
+#define SD_SPI_FREQ SD_SCK_MHZ(8)
 #define SD_CS_PIN D2
 #define BUTTON_PIN D1
 #define BUZZER_PIN D3
@@ -31,7 +31,9 @@ ezButton btn(BUTTON_PIN, INPUT_PULLUP);
 MyLSM6DS3 imu;
 RTC_PCF8563 rtc;
 U8X8_SSD1306_128X64_NONAME_HW_I2C lcd(/* clock=*/PIN_WIRE_SCL, /* data=*/PIN_WIRE_SDA, /* reset=*/U8X8_PIN_NONE);
-File file;
+ExFile file;
+SdExFat sd;
+SdSpiConfig sdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SD_SPI_FREQ);
 
 #define Log(...) \
   do { \
@@ -199,7 +201,7 @@ void showError(void) {
 
 bool sdLogStart(void) {
   Log("%u: sd: Start initialization\r\n", millis());
-  if (!SD.begin(SD_SPI_FREQ, SD_CS_PIN)) {
+  if (!sd.begin(sdSpiConfig)) {
     Log("%u: sd: Initialization failed\r\n", millis());
     return false;
   }
@@ -212,9 +214,9 @@ bool sdLogStart(void) {
            "%04u%02u%02u",
            now.year(), now.month(), now.day());
 
-  if (SD.exists(dirname)) {
+  if (sd.exists(dirname)) {
     Log("%u: sd: Directory %s exists\r\n", millis(), dirname);
-  } else if (SD.mkdir(dirname)) {
+  } else if (sd.mkdir(dirname)) {
     Log("%u: sd: Created directory %s\r\n", millis(), dirname);
   } else {
     Log("%u: sd: Failed to create directory %s\r\n", millis(), dirname);
@@ -228,8 +230,8 @@ bool sdLogStart(void) {
            now.hour(), now.minute(), now.second());
 
   Log("%u: sd: Opening %s\r\n", millis(), filename);
-  file = SD.open(filename, (O_RDWR | O_CREAT | O_TRUNC));
-  if (!file) {
+  bool opened = file.open(filename, (O_RDWR | O_CREAT | O_TRUNC));
+  if (!opened) {
     Log("%u: sd: Failed to open %s for writing\r\n", millis(), filename);
     return false;
   }
@@ -345,7 +347,7 @@ void sdLogStop(void) {
   }
 
   Log("%u: sd: Unmounting the card\r\n", millis());
-  SD.end();
+  sd.end();
 
   Log("%u: sd: Finished\r\n", millis());
   Log("%u: log: Captured %u data points during %u ms (%u Hz)\r\n",
