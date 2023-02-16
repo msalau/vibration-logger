@@ -269,11 +269,6 @@ void sdLogError(const char* msg) {
 }
 
 bool sdLogProcess(void) {
-  if (!file) {
-    Log("%u: sd: File is closed\r\n", millis());
-    return false;
-  }
-
   uint16_t fifoStatus;
   if (imu.fifoGetStatus(&fifoStatus) != IMU_SUCCESS) {
     Log("%u: imu: Failed to read FIFO status\r\n", millis());
