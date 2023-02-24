@@ -102,13 +102,13 @@ void loop() {
       break;
     case STATE_STARTING:
       Log("%u: loop: starting\r\n", millis());
+      showRecording();
+      digitalWrite(LED_GREEN, 0);
       if (!sdLogStart()) {
         Log("%u: loop: Failed to start logging\r\n", millis());
         state = STATE_ERROR;
         break;
       }
-      showRecording();
-      digitalWrite(LED_GREEN, 0);
       state = STATE_LOGGING;
       break;
     case STATE_LOGGING:
