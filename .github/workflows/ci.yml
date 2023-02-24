@@ -47,7 +47,7 @@ jobs:
       - uses: arduino/compile-sketches@v1
         with:
           cli-version: 0.30.0
-          sketch-paths: .
+          sketch-paths: ./Logger
           verbose: true
           fqbn: Seeeduino:nrf52:xiaonRF52840Sense:softdevice=s140v6,debug=l0
           platforms: |
@@ -59,6 +59,25 @@ jobs:
               version: 2.2.0
             - name: U8g2
               version: 2.33.15
+            - name: ezButton
+              version: 1.0.4
+            - name: Adafruit BusIO
+              version: 1.14.1
+            - name: RTClib
+              version: 2.1.1
+
+      - uses: arduino/compile-sketches@v1
+        with:
+          cli-version: 0.30.0
+          sketch-paths: ./NanoLogger
+          verbose: true
+          fqbn: arduino:avr:nano:cpu=atmega328
+          platforms: |
+            - name: arduino:avr
+              version: 1.8.6
+          libraries: |
+            - name: SdFat
+              version: 2.2.0
             - name: ezButton
               version: 1.0.4
             - name: Adafruit BusIO

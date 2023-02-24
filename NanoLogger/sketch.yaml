@@ -1,0 +1,15 @@
+#
+# Compile using the following command
+#   arduino-cli compile --export-binaries
+#
+default_fqbn: arduino:avr:nano:cpu=atmega328
+profiles:
+  xiao:
+    fqbn: arduino:avr:nano:cpu=atmega328
+    platforms:
+      - platform: arduino:avr:nano (1.8.6)
+    libraries:
+      - SdFat (2.2.0)
+      - ezButton (1.0.4)
+      - Adafruit BusIO (1.14.1)
+      - RTClib (2.1.1)
