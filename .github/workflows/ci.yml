@@ -44,7 +44,8 @@ jobs:
       - name: Install adafruit-nrfutil
         run: pip3 install adafruit-nrfutil
 
-      - uses: arduino/compile-sketches@v1
+      - name: Compile Logger
+        uses: arduino/compile-sketches@v1
         with:
           cli-version: 0.30.0
           sketch-paths: ./Logger
@@ -66,7 +67,8 @@ jobs:
             - name: RTClib
               version: 2.1.1
 
-      - uses: arduino/compile-sketches@v1
+      - name: Compile NanoLogger
+        uses: arduino/compile-sketches@v1
         with:
           cli-version: 0.30.0
           sketch-paths: ./NanoLogger
