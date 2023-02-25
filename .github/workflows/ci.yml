@@ -49,6 +49,11 @@ jobs:
         with:
           cli-version: 0.30.0
           sketch-paths: ./Logger
+          cli-compile-flags: |
+            - --build-property
+            - compiler.c.extra_flags=-DUSE_SPI_ARRAY_TRANSFER=1
+            - --build-property
+            - compiler.cpp.extra_flags=-DUSE_SPI_ARRAY_TRANSFER=1
           verbose: true
           fqbn: Seeeduino:nrf52:xiaonRF52840Sense:softdevice=s140v6,debug=l0
           platforms: |

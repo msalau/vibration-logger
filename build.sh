@@ -22,11 +22,14 @@ arduino-cli lib install U8g2@2.33.15
 arduino-cli lib install ezButton@1.0.4
 arduino-cli lib install RTClib@2.1.1
 
-echo "Compiling the sketch"
-arduino-cli compile --export-binaries ./Logger/
+echo "Compiling the Logger sketch"
+arduino-cli compile --verbose --export-binaries \
+    --build-property compiler.c.extra_flags=-DUSE_SPI_ARRAY_TRANSFER=1 \
+    --build-property compiler.cpp.extra_flags=-DUSE_SPI_ARRAY_TRANSFER=1 \
+    ./Logger/
 
-echo "Compiling the sketch"
-arduino-cli compile --export-binaries ./NanoLogger/
+echo "Compiling the NanoLogger sketch"
+arduino-cli compile --verbose --export-binaries ./NanoLogger/
 
 echo "Generating the UF2 image"
 ./utils/uf2/utils/uf2conv.py \
