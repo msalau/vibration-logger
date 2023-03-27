@@ -3,23 +3,21 @@ name: Compile
 on: [push, pull_request]
 
 jobs:
-  build-with-script:
+  compile:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3.3.0
-        with:
-          submodules: true
 
       - name: Install adafruit-nrfutil
         run: pip3 install adafruit-nrfutil
 
       - name: Install Arduino CLI
-        run: curl -fsSL https://github.com/arduino/arduino-cli/releases/download/0.30.0/arduino-cli_0.30.0_Linux_64bit.tar.gz | gunzip | tar x arduino-cli
+        uses: arduino/setup-arduino-cli@v1.1.1
 
-      - name: Compile examples
-        run: PATH=.:$PATH ./build.sh
+      - name: Compile
+        run: ./compile.sh
 
       - name: Save binaries
         uses: actions/upload-artifact@v3.1.2
@@ -28,66 +26,4 @@ jobs:
           path: |
             ./**/*
             !./.git
-            !./utils
-            !./arduino-cli
           if-no-files-found: error
-
-  build-with-action:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3.3.0
-        with:
-          submodules: true
-
-      - name: Install adafruit-nrfutil
-        run: pip3 install adafruit-nrfutil
-
-      - name: Compile Logger
-        uses: arduino/compile-sketches@v1
-        with:
-          cli-version: 0.30.0
-          sketch-paths: ./Logger
-          cli-compile-flags: |
-            - --build-property
-            - compiler.c.extra_flags=-DUSE_SPI_ARRAY_TRANSFER=1
-            - --build-property
-            - compiler.cpp.extra_flags=-DUSE_SPI_ARRAY_TRANSFER=1
-          verbose: true
-          fqbn: Seeeduino:nrf52:xiaonRF52840Sense:softdevice=s140v6,debug=l0
-          platforms: |
-            - name: Seeeduino:nrf52
-              version: 1.1.1
-              source-url: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
-          libraries: |
-            - name: SdFat
-              version: 2.2.0
-            - name: U8g2
-              version: 2.33.15
-            - name: ezButton
-              version: 1.0.4
-            - name: Adafruit BusIO
-              version: 1.14.1
-            - name: RTClib
-              version: 2.1.1
-
-      - name: Compile NanoLogger
-        uses: arduino/compile-sketches@v1
-        with:
-          cli-version: 0.30.0
-          sketch-paths: ./NanoLogger
-          verbose: true
-          fqbn: arduino:avr:nano:cpu=atmega328
-          platforms: |
-            - name: arduino:avr
-              version: 1.8.6
-          libraries: |
-            - name: SdFat
-              version: 2.2.0
-            - name: ezButton
-              version: 1.0.4
-            - name: Adafruit BusIO
-              version: 1.14.1
-            - name: RTClib
-              version: 2.1.1

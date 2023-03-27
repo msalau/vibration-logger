@@ -1,13 +1,13 @@
 #
 # Compile using the following command
-#   arduino-cli compile --export-binaries
+#   arduino-cli compile --export-binaries --profile nano
 #
 default_fqbn: arduino:avr:nano:cpu=atmega328
 profiles:
-  xiao:
+  nano:
     fqbn: arduino:avr:nano:cpu=atmega328
     platforms:
-      - platform: arduino:avr:nano (1.8.6)
+      - platform: arduino:avr (1.8.6)
     libraries:
       - SdFat (2.2.0)
       - ezButton (1.0.4)

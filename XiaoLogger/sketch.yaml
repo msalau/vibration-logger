@@ -1,8 +1,7 @@
 #
 # Compile using the following command
-#   arduino-cli compile --export-binaries
+#   arduino-cli compile --export-binaries --profile xiao
 #
-default_fqbn: Seeeduino:nrf52:xiaonRF52840Sense:softdevice=s140v6,debug=l0
 profiles:
   xiao:
     fqbn: Seeeduino:nrf52:xiaonRF52840Sense:softdevice=s140v6,debug=l0
