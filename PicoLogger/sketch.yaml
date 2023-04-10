@@ -1,0 +1,17 @@
+#
+# Compile using the following command
+#   arduino-cli compile --export-binaries --profile pico
+#
+profiles:
+  pico:
+    fqbn: rp2040:rp2040:rpipico
+    platforms:
+      - platform: rp2040:rp2040 (3.1.0)
+        platform_index_url: https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+    libraries:
+      - SdFat (2.2.0)
+      - U8g2 (2.33.15)
+      - ezButton (1.0.4)
+      - Adafruit BusIO (1.14.1)
+      - RTClib (2.1.1)
+      - SWI2C (2.0.2)
