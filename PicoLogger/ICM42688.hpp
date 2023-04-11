@@ -2,7 +2,7 @@
 
 #define ICM42688P
 #include "Icm426xxDefs.h"
-
+#include "clocked_input.pio.h"
 #include <SPI.h>
 
 typedef struct 
@@ -30,11 +30,15 @@ private:
     int extSckPin;
     int extCsPin;
 
+    PIO pio;
+    uint pio_sm;
+    uint pio_offset;
+
 public:
     ICM42688(HardwareSPI &spi, int csPin, int extCsPin, int extMisoPin = -1, int extSckPin = -1)
         : spi(spi), csPin(csPin), extCsPin(extCsPin), extMisoPin(extMisoPin), extSckPin(extSckPin)
     {
-        extEnable = (extMisoPin != -1) && (extSckPin != -1);
+        extEnable = (extMisoPin != -1) && (extSckPin != -1) && ((extMisoPin + 1) == extSckPin);
     }
 
     void select_bank(unsigned bank)
@@ -44,6 +48,12 @@ public:
 
     void write(uint8_t address, uint8_t value)
     {
+        if (extEnable)
+        {
+            pio_sm_clear_fifos(pio, pio_sm);
+            pio_sm_restart(pio, pio_sm);
+        }
+
         digitalWrite(csPin, LOW);
         digitalWrite(extCsPin, LOW);
 
@@ -54,18 +64,54 @@ public:
         digitalWrite(extCsPin, HIGH);
     }
 
-    void read(uint8_t address, void *data, unsigned length)
+    void read(uint8_t address, void *data0, unsigned length, void *data1 = NULL, unsigned *data1_len = NULL)
     {
-        memset(data, 0xFF, length);
+        if (extEnable)
+        {
+            pio_sm_clear_fifos(pio, pio_sm);
+            pio_sm_restart(pio, pio_sm);
+        }
 
         digitalWrite(csPin, LOW);
         digitalWrite(extCsPin, LOW);
 
         spi.transfer(address | 0x80);
-        spi.transfer(data, length);
+
+        if (extEnable)
+        {
+            // Wait for the data from PIO clkin
+            delayMicroseconds(1);
+            if (!pio_sm_is_rx_fifo_empty(pio, pio_sm))
+                (void)pio_sm_get(pio, pio_sm);
+        }
+
+        uint8_t *pdata0 = (uint8_t *)data0;
+        uint8_t *pdata1 = (uint8_t *)data1;
+
+        while (length)
+        {
+            *pdata0++ = spi.transfer(0xFF);
+            
+            if (extEnable && pdata1 && !pio_sm_is_rx_fifo_empty(pio, pio_sm))
+                *pdata1++ = pio_sm_get(pio, pio_sm);
+
+            length--;
+        }
 
         digitalWrite(csPin, HIGH);
         digitalWrite(extCsPin, HIGH);
+
+        if (extEnable && pdata1)
+        {
+            // Wait for the data from PIO clkin
+            delayMicroseconds(1);
+
+            while (!pio_sm_is_rx_fifo_empty(pio, pio_sm))
+                *pdata1++ = pio_sm_get(pio, pio_sm);
+        }
+
+        if (extEnable && data1_len)
+            *data1_len = pdata1 - (uint8_t *)data1;
     }
 
     uint8_t read(uint8_t address)
@@ -90,16 +136,19 @@ public:
         pinMode(csPin, OUTPUT);
         pinMode(extCsPin, OUTPUT);
 
-        if (extEnable)
-        {
-            // Configure EXT_MISO and EXT_SCK pins as inputs
-            pinMode(extMisoPin, INPUT);
-            pinMode(extSckPin, INPUT);
-        }
-
         // Configure the SPI bus in mode 3, MSB first, 1 MHz
         spi.begin();
         spi.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE3));
+
+        if (extEnable)
+        {
+            // Load the clocked_input program, and configure a free state machine
+            // to run the program.
+            pio = pio0;
+            pio_offset = pio_add_program(pio, &clocked_input_program);
+            pio_sm = pio_claim_unused_sm(pio, true);
+            clocked_input_program_init(pio, pio_sm, pio_offset, extMisoPin);
+        }
 
         // Perform Software Reset
         select_bank(0);
@@ -195,11 +244,21 @@ public:
         return value;
     }
 
+    void readAccelData(Value *v1, Value *v2, unsigned *v2_len = NULL)
+    {
+        read(MPUREG_ACCEL_DATA_X0_UI, v1, sizeof(*v1), v2, v2_len);
+    }
+
     Value readGyroData(void)
     {
         Value value;
         read(MPUREG_GYRO_DATA_X0_UI, &value, sizeof(value));
         return value;
+    }
+
+    void readGyroData(Value *v1, Value *v2, unsigned *v2_len = NULL)
+    {
+        read(MPUREG_GYRO_DATA_X0_UI, v1, sizeof(*v1), v2, v2_len);
     }
 
     void fifoBegin(void)
@@ -224,9 +283,19 @@ public:
         return read16(MPUREG_FIFO_COUNTH);
     }
 
+    void fifoReadCount(uint16_t *v1, uint16_t *v2 = NULL)
+    {
+        return read(MPUREG_FIFO_COUNTH, v1, 2, v2);
+    }
+
     uint16_t fifoReadLostCount(void)
     {
         return read16(MPUREG_FIFO_LOST_PKT0);
+    }
+
+    void fifoReadLostCount(uint16_t *v1, uint16_t *v2 = NULL)
+    {
+        return read(MPUREG_FIFO_LOST_PKT0, v1, 2, v2);
     }
 
     FifoPacket1 fifoReadValue(void)
@@ -236,5 +305,10 @@ public:
         FifoPacket1 value;
         read(MPUREG_FIFO_DATA, &value, sizeof(value));
         return value;
+    }
+
+    void fifoReadValue(FifoPacket1 *pkt1, FifoPacket1 *pkt2 = NULL)
+    {
+        read(MPUREG_FIFO_DATA, pkt1, sizeof(*pkt1), pkt2);
     }
 };

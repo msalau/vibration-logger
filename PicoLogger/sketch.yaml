@@ -14,4 +14,3 @@ profiles:
       - ezButton (1.0.4)
       - Adafruit BusIO (1.14.1)
       - RTClib (2.1.1)
-      - SWI2C (2.0.2)

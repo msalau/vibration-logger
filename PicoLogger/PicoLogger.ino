@@ -1,20 +1,9 @@
 #include <SdFat.h>
 #include <ezButton.h>
-#include "Log.hpp"
-#include "ICM42688.hpp"
-
-//#define ENABLE_DS3231
-
-#if ENABLE_DS3231
 #include <Wire.h>
 #include <RTClib.h>
-RTC_DS3231 rtc;
-#else
-#define SOFT_DS3231_ADDR 0x68
-#define SOFT_DS3231_SDA D5
-#define SOFT_DS3231_SCL D4
-#include "SoftDS3231.hpp"
-#endif
+#include "Log.hpp"
+#include "ICM42688.hpp"
 
 #define LED_RED D6
 #define LED_GREEN D7
@@ -29,11 +18,12 @@ RTC_DS3231 rtc;
 #define IMU_EXT_MISO D10
 #define IMU_EXT_SCK D11
 
-ICM42688 imu(IMU_SPI_BUS, IMU_SPI_CS, IMU_EXT_CS);
+ICM42688 imu(IMU_SPI_BUS, IMU_SPI_CS, IMU_EXT_CS, IMU_EXT_MISO, IMU_EXT_SCK);
 
 #define BUTTON_PIN D2
 
 ezButton btn(BUTTON_PIN, INPUT_PULLUP);
+RTC_DS3231 rtc;
 
 #define SD_SPI_FREQ SD_SCK_MHZ(32)
 #define SD_CS_PIN   D17
@@ -59,24 +49,16 @@ void setup()
   digitalWrite(LED_GREEN, LOW);
   digitalWrite(LED_BLUE, LOW);
 
-#if ENABLE_DS3231
   // Initialize the I2C bus and set 400kHz frequency
   Log("%u: Initialize Wire\r\n", millis());
   Wire.begin();
-  Wire.setClock(100000);
-#endif
+  Wire.setClock(400000);
 
   // Initialize RTC
   while (true)
   {
     Log("%u: Initialize RTC\r\n", millis());
-    bool success;
-#if ENABLE_DS3231
-    success = rtc.begin(&Wire);
-#else
-    success = soft_ds3231_init();
-#endif
-    if (success)
+    if (rtc.begin(&Wire))
       break;
     delay(1000);
   }
@@ -101,10 +83,21 @@ const unsigned capture_time = 10000;
 
 void loop()
 {
-#if 0
-  Value v = imu.readAccelData();
-  Log("x:%d, y:%d, z:%d\r\n", v.x, v.y, v.z);
-  delay(100);
+#if 1
+  DateTime now = rtc.now();
+  Log("%02u.%02u.%04u %02u:%02u:%02u  ",
+    now.day(), now.month(), now.year(),
+    now.hour(), now.minute(), now.second());
+
+  Value v1 = {0, 0, 0};
+  Value v2 = {0, 0, 0};
+  unsigned v2_len = 255;
+  imu.readAccelData(&v1, &v2, &v2_len);
+  Log("x1:%d, y1:%d, z1:%d, x2:%d, y2:%d, z2:%d, l2: %u\r\n",
+    v1.x, v1.y, v1.z,
+    v2.x, v2.y, v2.z, v2_len);
+  digitalToggle(LED_BLUE);
+  delay(1000);
   return;
 #endif
 
@@ -121,6 +114,7 @@ void loop()
     if (1) {
       Log("%u: Start capture (%u ms)\r\n", millis(), capture_time);
       digitalWrite(LED_BLUE, HIGH);
+      tone(BUZZER_PIN, BUZZER_FREQ, 100);
       capture_end_time = millis() + capture_time;
       capture_values = 0;
       imu.fifoBegin();
@@ -150,6 +144,7 @@ void loop()
       Log("%u: Capture rate %f Hz\r\n", millis(), (capture_values * 1000.0f / capture_time));
       capture_end_time = 0;
       digitalWrite(LED_BLUE, LOW);
+      tone(BUZZER_PIN, BUZZER_FREQ, 400);
     }
   }
 }
@@ -171,7 +166,6 @@ void sdTest(void) {
 
 void timeSetterLoop(void)
 {
-#if ENABLE_DS3231
   if (!Serial)
     return;
 
@@ -209,5 +203,4 @@ void timeSetterLoop(void)
 
     Log("%u: time: Time has been updated\r\n", millis());
   }
-#endif
 }
