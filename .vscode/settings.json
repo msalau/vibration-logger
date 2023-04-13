@@ -1,0 +1,8 @@
+{
+    "arduino.useArduinoCli": true,
+    //"arduino.logLevel": "verbose",
+    "arduino.additionalUrls": [
+        "https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json",
+        "https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json"
+    ]
+}
