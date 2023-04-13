@@ -138,7 +138,7 @@ public:
 
         // Configure the SPI bus in mode 3, MSB first, 1 MHz
         spi.begin();
-        spi.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE3));
+        spi.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE3));
 
         if (extEnable)
         {
